@@ -1,0 +1,245 @@
+# FinTech Terminal ML Engine Configuration
+
+# General Settings
+general:
+  random_seed: 42
+  log_level: INFO
+  cache_dir: ./cache
+  model_dir: ./models
+  data_dir: ./data
+
+# Data Settings
+data:
+  sources:
+    - yfinance
+    - newsapi
+    - reddit
+  
+  default_interval: 1d
+  default_period: 2y
+  
+  preprocessing:
+    handle_missing: forward_fill
+    handle_weekends: true
+    outlier_method: iqr
+    outlier_threshold: 3.0
+    scaling_method: standard
+
+# Feature Engineering
+features:
+  technical_indicators:
+    enabled: true
+    indicators:
+      - sma: [10, 20, 50, 200]
+      - ema: [12, 26, 50]
+      - rsi: [14, 21]
+      - macd: standard
+      - bollinger: [20, 2]
+      - atr: [14]
+      - adx: [14]
+      - stochastic: [14, 3]
+  
+  microstructure:
+    enabled: true
+    features:
+      - spread
+      - volume_profile
+      - order_flow_imbalance
+  
+  sentiment:
+    enabled: true
+    sources:
+      - news
+      - social_media
+    
+  statistical:
+    enabled: true
+    windows: [5, 10, 20, 60]
+
+# Model Configurations
+models:
+  price_predictor:
+    type: lstm
+    architecture:
+      sequence_length: 60
+      lstm_units: [128, 64, 32]
+      dropout_rate: 0.2
+      batch_normalization: true
+    
+    training:
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.001
+      early_stopping:
+        patience: 10
+        monitor: val_loss
+      
+    validation:
+      split_ratio: 0.2
+      shuffle: false
+  
+  trend_classifier:
+    type: ensemble
+    models:
+      - random_forest:
+          n_estimators: 100
+          max_depth: 10
+          min_samples_split: 5
+      
+      - gradient_boosting:
+          n_estimators: 100
+          learning_rate: 0.1
+          max_depth: 5
+      
+      - xgboost:
+          n_estimators: 100
+          learning_rate: 0.1
+          max_depth: 5
+    
+    training:
+      cross_validation: 5
+      scoring: accuracy
+      hyperparameter_tuning: true
+  
+  sentiment_analyzer:
+    models:
+      - vader
+      - textblob
+      - finbert
+    
+    aggregation: weighted_average
+    weights:
+      vader: 0.3
+      textblob: 0.3
+      finbert: 0.4
+
+# Trading Strategies
+strategies:
+  momentum:
+    lookback_period: 20
+    momentum_threshold: 0.05
+    filters:
+      volume: true
+      volatility: true
+      regime: true
+    
+    position_sizing:
+      method: kelly
+      max_position_size: 0.1
+      risk_per_trade: 0.02
+    
+    risk_management:
+      stop_loss: 0.05
+      take_profit: 0.15
+      trailing_stop: true
+      max_positions: 5
+  
+  mean_reversion:
+    lookback_period: 20
+    entry_zscore: 2.0
+    exit_zscore: 0.5
+    
+  pairs_trading:
+    correlation_threshold: 0.8
+    cointegration_pvalue: 0.05
+    entry_zscore: 2.0
+    exit_zscore: 0.5
+
+# Backtesting
+backtesting:
+  initial_capital: 100000
+  commission: 0.001
+  slippage: 0.0001
+  min_commission: 1.0
+  
+  position_sizing:
+    default: 0.1
+    max_positions: 10
+  
+  risk_management:
+    max_drawdown: 0.20
+    position_limit: 0.25
+  
+  performance_metrics:
+    - total_return
+    - annualized_return
+    - sharpe_ratio
+    - sortino_ratio
+    - max_drawdown
+    - calmar_ratio
+    - win_rate
+    - profit_factor
+
+# Model Deployment
+deployment:
+  api:
+    framework: fastapi
+    host: 0.0.0.0
+    port: 8000
+    workers: 4
+    
+  monitoring:
+    enabled: true
+    metrics:
+      - prediction_latency
+      - model_drift
+      - data_quality
+    
+  versioning:
+    strategy: semantic
+    auto_rollback: true
+
+# Logging and Monitoring
+logging:
+  handlers:
+    - console
+    - file
+  
+  file:
+    path: ./logs
+    max_size: 10MB
+    backup_count: 5
+  
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# API Keys (use environment variables in production)
+api_keys:
+  newsapi: ${NEWSAPI_KEY}
+  alphavantage: ${ALPHAVANTAGE_KEY}
+  finnhub: ${FINNHUB_KEY}
+
+# Performance Optimization
+optimization:
+  cache:
+    enabled: true
+    ttl: 3600  # 1 hour
+    max_size: 1000
+  
+  parallel_processing:
+    enabled: true
+    n_jobs: -1  # Use all cores
+  
+  gpu:
+    enabled: true
+    device: cuda:0  # or cpu
+
+# Alerts and Notifications
+alerts:
+  enabled: true
+  channels:
+    - email
+    - webhook
+  
+  conditions:
+    - type: model_performance
+      metric: sharpe_ratio
+      threshold: 1.5
+      direction: below
+    
+    - type: drawdown
+      threshold: 0.15
+      direction: above
+    
+    - type: prediction_confidence
+      threshold: 0.7
+      direction: below
