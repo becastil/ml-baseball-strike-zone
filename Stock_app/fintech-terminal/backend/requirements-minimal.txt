@@ -1,0 +1,32 @@
+# Minimal requirements for testing the fintech terminal
+# Use this if the full requirements.txt fails
+
+# Core FastAPI
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+python-dotenv==1.0.0
+
+# Market data
+yfinance==0.2.33
+
+# HTTP client (for real-time service)
+aiohttp==3.9.1
+
+# Basic data processing
+pandas==2.1.4
+numpy==1.26.3
+
+# WebSocket support
+websockets==12.0
+
+# CORS handling
+fastapi-cors
+
+# Optional: Only install if you need database features
+# sqlalchemy==2.0.25
+# psycopg2-binary==2.9.9
+
+# Optional: Only install if you need authentication
+# python-jose[cryptography]==3.3.0
+# passlib[bcrypt]==1.7.4

@@ -60,13 +60,26 @@ const marketSlice = createSlice({
     removeFromWatchlist: (state, action: PayloadAction<string>) => {
       state.watchlist = state.watchlist.filter(item => item.id !== action.payload)
     },
-    updateStockPrice: (state, action: PayloadAction<{ symbol: string; price: number; change: number }>) => {
+    updateStockPrice: (state, action: PayloadAction<{ symbol: string; price: number; change: number; changePercent?: number }>) => {
       const stock = state.stocks.find(s => s.symbol === action.payload.symbol)
       if (stock) {
         stock.price = action.payload.price
         stock.change = action.payload.change
-        stock.changePercent = (action.payload.change / stock.previousClose) * 100
+        stock.changePercent = action.payload.changePercent || (action.payload.change / stock.previousClose) * 100
       }
+    },
+    setStocks: (state, action: PayloadAction<Stock[]>) => {
+      state.stocks = action.payload
+    },
+    updateMultipleStocks: (state, action: PayloadAction<Stock[]>) => {
+      action.payload.forEach(updatedStock => {
+        const existingIndex = state.stocks.findIndex(s => s.symbol === updatedStock.symbol)
+        if (existingIndex >= 0) {
+          state.stocks[existingIndex] = { ...state.stocks[existingIndex], ...updatedStock }
+        } else {
+          state.stocks.push(updatedStock)
+        }
+      })
     },
   },
   extraReducers: (builder) => {
@@ -95,5 +108,5 @@ const marketSlice = createSlice({
   },
 })
 
-export const { setSelectedStock, addToWatchlist, removeFromWatchlist, updateStockPrice } = marketSlice.actions
+export const { setSelectedStock, addToWatchlist, removeFromWatchlist, updateStockPrice, setStocks, updateMultipleStocks } = marketSlice.actions
 export default marketSlice.reducer

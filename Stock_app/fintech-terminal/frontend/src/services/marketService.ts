@@ -2,70 +2,36 @@ import api from './api'
 import { Stock, MarketIndex, ChartData, NewsArticle, MarketSentiment, OrderBook } from '@/types'
 
 export const marketService = {
-  // Stock data
-  async getStocks(symbols: string[]) {
-    return api.get<Stock[]>('/stocks', { symbols: symbols.join(',') })
+  // Stock quotes - using Yahoo Finance via simplified backend
+  async getQuote(symbol: string) {
+    return api.get<Stock>(`/api/v1/market/quote/${symbol}`)
   },
 
-  async getStock(symbol: string) {
-    return api.get<Stock>(`/stocks/${symbol}`)
+  async getMultipleQuotes(symbols: string[]) {
+    return api.get<{quotes: Stock[], count: number}>('/api/v1/market/quotes', { symbols: symbols.join(',') })
   },
 
-  async searchStocks(query: string) {
-    return api.get<Stock[]>('/stocks/search', { q: query })
+  // Historical data
+  async getHistoricalData(symbol: string, period: string = '1mo', interval: string = '1d') {
+    return api.get<{symbol: string, data: ChartData[], count: number}>(`/api/v1/market/history/${symbol}`, { period, interval })
   },
 
   // Market indices
   async getMarketIndices() {
-    return api.get<MarketIndex[]>('/market/indices')
+    return api.get<{indices: MarketIndex[]}>('/api/v1/market/indices')
   },
 
-  // Chart data
-  async getChartData(symbol: string, interval: string, period?: string) {
-    return api.get<ChartData[]>(`/stocks/${symbol}/chart`, { interval, period })
+  // Symbol search
+  async searchSymbols(query: string) {
+    return api.get<{results: any[]}>('/api/v1/market/search', { query })
   },
 
-  // Real-time data
-  async getQuote(symbol: string) {
-    return api.get<Stock>(`/stocks/${symbol}/quote`)
-  },
-
-  async getOrderBook(symbol: string) {
-    return api.get<OrderBook>(`/stocks/${symbol}/orderbook`)
-  },
-
-  // News and sentiment
-  async getMarketNews(limit: number = 20) {
-    return api.get<NewsArticle[]>('/news/market', { limit })
-  },
-
-  async getStockNews(symbol: string, limit: number = 10) {
-    return api.get<NewsArticle[]>(`/news/stocks/${symbol}`, { limit })
-  },
-
-  async getMarketSentiment() {
-    return api.get<MarketSentiment>('/market/sentiment')
-  },
-
-  // Watchlist
-  async getWatchlist() {
-    return api.get<Stock[]>('/watchlist')
-  },
-
-  async addToWatchlist(symbol: string) {
-    return api.post('/watchlist', { symbol })
-  },
-
-  async removeFromWatchlist(symbol: string) {
-    return api.delete(`/watchlist/${symbol}`)
-  },
-
-  // WebSocket connections
-  subscribeToMarketData(symbols: string[], onMessage: (data: any) => void) {
-    const ws = api.createWebSocket('/market/stream')
+  // WebSocket connection for real-time data
+  connectToRealTimeData(onMessage: (data: any) => void) {
+    const ws = new WebSocket('ws://localhost:8000/ws/market')
     
     ws.onopen = () => {
-      ws.send(JSON.stringify({ action: 'subscribe', symbols }))
+      console.log('Connected to real-time market data')
     }
 
     ws.onmessage = (event) => {
@@ -77,24 +43,48 @@ export const marketService = {
       console.error('WebSocket error:', error)
     }
 
+    ws.onclose = () => {
+      console.log('Disconnected from real-time market data')
+    }
+
     return ws
   },
 
-  // Historical data
-  async getHistoricalData(symbol: string, startDate: string, endDate: string) {
-    return api.get<ChartData[]>(`/stocks/${symbol}/historical`, { startDate, endDate })
+  // Real-time updates via polling (since Yahoo Finance doesn't provide WebSocket)
+  startPolling(symbols: string[], onUpdate: (data: Stock[]) => void, intervalMs: number = 5000) {
+    const poll = async () => {
+      try {
+        const response = await this.getMultipleQuotes(symbols)
+        onUpdate(response.data)
+      } catch (error) {
+        console.error('Polling error:', error)
+      }
+    }
+    
+    // Initial fetch
+    poll()
+    
+    // Set up interval
+    const intervalId = setInterval(poll, intervalMs)
+    
+    // Return cleanup function
+    return () => clearInterval(intervalId)
   },
 
-  // Market movers
-  async getTopGainers(limit: number = 10) {
-    return api.get<Stock[]>('/market/gainers', { limit })
+  // Legacy methods for compatibility
+  async getStocks(symbols: string[]) {
+    return this.getMultipleQuotes(symbols)
   },
 
-  async getTopLosers(limit: number = 10) {
-    return api.get<Stock[]>('/market/losers', { limit })
+  async getStock(symbol: string) {
+    return this.getQuote(symbol)
   },
 
-  async getMostActive(limit: number = 10) {
-    return api.get<Stock[]>('/market/active', { limit })
+  async searchStocks(query: string) {
+    return this.searchSymbols(query)
+  },
+
+  async getChartData(symbol: string, interval: string, period?: string) {
+    return this.getHistoricalData(symbol, period || '1mo', interval)
   },
 }

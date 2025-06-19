@@ -7,6 +7,7 @@ import MarketOverview from '@/components/dashboard/MarketOverview'
 import PortfolioSummary from '@/components/dashboard/PortfolioSummary'
 import RecentActivity from '@/components/dashboard/RecentActivity'
 import QuickActions from '@/components/dashboard/QuickActions'
+import RealTimeMarketWidget from '@/components/dashboard/RealTimeMarketWidget'
 import { TrendingUp, TrendingDown, Activity, DollarSign } from 'lucide-react'
 
 const Dashboard = () => {
@@ -95,6 +96,11 @@ const Dashboard = () => {
         <div>
           <QuickActions />
         </div>
+      </div>
+
+      {/* Real-Time Market Data Widget */}
+      <div>
+        <RealTimeMarketWidget />
       </div>
 
       {/* Bottom Grid */}

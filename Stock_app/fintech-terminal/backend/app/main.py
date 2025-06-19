@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.api.v1 import auth, market_data
+from app.api.v1 import auth, market_data, realtime_market
 from app.core.config import settings
 from app.db.database import engine, Base
 
@@ -83,4 +83,10 @@ app.include_router(
     market_data.router,
     prefix="/api/v1/market",
     tags=["market-data"]
+)
+
+app.include_router(
+    realtime_market.router,
+    prefix="/api/v1/realtime",
+    tags=["real-time-market"]
 )
