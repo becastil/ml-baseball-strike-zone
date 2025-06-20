@@ -1,0 +1,18 @@
+# Data files
+*.p
+*.csv
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary files
+notebook_fix.txt
+
+# Virtual environments
+venv/
+env/

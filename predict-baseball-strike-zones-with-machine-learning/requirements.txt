@@ -1,0 +1,7 @@
+numpy>=2.0.0
+pandas>=2.2.0
+matplotlib>=3.8.0
+scikit-learn>=1.4.0
+pybaseball>=2.2.7
+jupyter>=1.0.0
+ipykernel>=6.29.0
