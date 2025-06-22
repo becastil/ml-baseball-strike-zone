@@ -1,0 +1,41 @@
+{
+    "client_id": "default",
+    "client_name": "Default Client",
+    
+    "data_processing": {
+        "date_format": "%Y-%m-%d",
+        "encoding": "utf-8",
+        "decimal_places": 2
+    },
+    
+    "pharmacy_rebates": {
+        "enabled": true,
+        "flat_percentage": 0.20
+    },
+    
+    "stop_loss": {
+        "enabled": true,
+        "attachment_point": 250000,
+        "reimbursement_lag_months": 2
+    },
+    
+    "fixed_costs": {
+        "admin_fee_pepm": 35.00,
+        "stop_loss_premium_pepm": 65.00
+    },
+    
+    "budget": {
+        "pmpm": 500.00
+    },
+    
+    "high_cost_threshold": 50000,
+    
+    "visualization": {
+        "brand_colors": {
+            "primary": "#1E4D8B",
+            "secondary": "#16A085",
+            "positive": "#27AE60",
+            "negative": "#E74C3C"
+        }
+    }
+}

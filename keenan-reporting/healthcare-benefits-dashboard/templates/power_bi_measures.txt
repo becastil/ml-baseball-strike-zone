@@ -1,0 +1,147 @@
+# Power BI DAX Measures for Healthcare Benefits Dashboard
+# Copy these measures into Power BI
+
+# ========== CORE METRICS ==========
+
+Total Paid Amount = SUM('sample_healthcare_data_minimal'[PaidAmount])
+
+Total Allowed Amount = SUM('sample_healthcare_data_minimal'[AllowedAmount])
+
+Total Billed Amount = SUM('sample_healthcare_data_minimal'[BilledAmount])
+
+Member Count = DISTINCTCOUNT('sample_healthcare_data_minimal'[EmployeeID])
+
+Total Member Months = SUM('sample_healthcare_data_minimal'[MemberMonths])
+
+# ========== PMPM CALCULATIONS ==========
+
+Gross PMPM = 
+DIVIDE(
+    [Total Paid Amount],
+    [Total Member Months],
+    0
+)
+
+Net PMPM = 
+VAR PharmacyRebates = [Total Paid Amount] * 0.20  // 20% rebate assumption
+VAR NetCost = [Total Paid Amount] - PharmacyRebates
+RETURN
+DIVIDE(
+    NetCost,
+    [Total Member Months],
+    0
+)
+
+Budget PMPM = AVERAGE('sample_healthcare_data_minimal'[BudgetedPMPM])
+
+Budget Variance % = 
+DIVIDE(
+    [Net PMPM] - [Budget PMPM],
+    [Budget PMPM],
+    0
+)
+
+# ========== COST BREAKDOWN ==========
+
+Medical Costs = 
+CALCULATE(
+    [Total Paid Amount],
+    'sample_healthcare_data_minimal'[PlanType] = "Medical"
+)
+
+Pharmacy Costs = 
+CALCULATE(
+    [Total Paid Amount],
+    'sample_healthcare_data_minimal'[PlanType] = "Rx"
+)
+
+Pharmacy Rebates = [Pharmacy Costs] * 0.20  // 20% rebate
+
+Net Pharmacy Costs = [Pharmacy Costs] - [Pharmacy Rebates]
+
+Total Net Cost = [Medical Costs] + [Net Pharmacy Costs]
+
+# ========== UTILIZATION METRICS ==========
+
+Claims Count = COUNTROWS('sample_healthcare_data_minimal')
+
+Claims per Member = 
+DIVIDE(
+    [Claims Count],
+    [Member Count],
+    0
+)
+
+Average Claim Cost = 
+DIVIDE(
+    [Total Paid Amount],
+    [Claims Count],
+    0
+)
+
+# ========== HIGH COST ANALYSIS ==========
+
+High Cost Threshold = 50000
+
+High Cost Members = 
+CALCULATE(
+    DISTINCTCOUNT('sample_healthcare_data_minimal'[EmployeeID]),
+    FILTER(
+        SUMMARIZE(
+            'sample_healthcare_data_minimal',
+            'sample_healthcare_data_minimal'[EmployeeID],
+            "MemberTotal", SUM('sample_healthcare_data_minimal'[PaidAmount])
+        ),
+        [MemberTotal] > [High Cost Threshold]
+    )
+)
+
+High Cost Claims Amount = 
+CALCULATE(
+    [Total Paid Amount],
+    FILTER(
+        SUMMARIZE(
+            'sample_healthcare_data_minimal',
+            'sample_healthcare_data_minimal'[EmployeeID],
+            "MemberTotal", SUM('sample_healthcare_data_minimal'[PaidAmount])
+        ),
+        [MemberTotal] > [High Cost Threshold]
+    )
+)
+
+# ========== TREND CALCULATIONS ==========
+
+Prior Month Cost = 
+CALCULATE(
+    [Total Paid Amount],
+    DATEADD('sample_healthcare_data_minimal'[ReportMonth], -1, MONTH)
+)
+
+MoM Change % = 
+DIVIDE(
+    [Total Paid Amount] - [Prior Month Cost],
+    [Prior Month Cost],
+    0
+)
+
+YTD Cost = 
+TOTALYTD(
+    [Total Paid Amount],
+    'sample_healthcare_data_minimal'[ReportMonth]
+)
+
+# ========== KPI INDICATORS ==========
+
+Cost Status = 
+IF(
+    [Budget Variance %] < -0.05, "Under Budget",
+    IF([Budget Variance %] > 0.05, "Over Budget", "On Target")
+)
+
+Cost Status Color = 
+SWITCH(
+    [Cost Status],
+    "Under Budget", "#27AE60",
+    "Over Budget", "#E74C3C",
+    "On Target", "#F39C12"
+)

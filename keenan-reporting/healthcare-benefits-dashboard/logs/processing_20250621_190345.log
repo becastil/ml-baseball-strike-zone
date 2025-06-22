@@ -1,0 +1,5 @@
+2025-06-21 19:03:45,194 - __main__ - INFO - Starting processing for: .\data\input\sample_healthcare_data.csv
+2025-06-21 19:03:45,347 - __main__ - INFO - Loaded 54538 rows from sample_healthcare_data.csv
+2025-06-21 19:03:45,649 - __main__ - INFO - Total pharmacy rebates: $1,786,216.19 (20.0% of Rx cost)
+2025-06-21 19:03:45,880 - __main__ - WARNING - Data quality warnings: ['Found 35650 duplicate records', "Missing data for months: ['2024-02', '2024-04', '2024-05', '2024-06', '2024-07', '2024-08', '2024-09', '2024-10', '2024-11']", '7 claims have AllowedAmount < PaidAmount']
+2025-06-21 19:06:30,855 - __main__ - INFO - Processing complete. Output saved to: C:\Users\becas\OneDrive\Documents\keenan-reporting\healthcare-benefits-dashboard\data\output\default_processed_20250621_190345.xlsx
